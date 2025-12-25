@@ -30,9 +30,11 @@ def search_jobs(query):
         title = job.get("title", "No title")
         company = job.get("company_name", "Unknown company")
         location = job.get("location", "Unknown location")
-        apply_link = job.get("apply_link", "No link available")
+        link = job.get("link") or job.get("job_link") or job.get("apply_link") or "No link available"
 
-        formatted = f"{title}\n{company} — {location}\nApply: {apply_link}"
+
+
+        formatted = f"{title}\n{company} — {location}\nApply: {link}"
         results.append(formatted)
 
     return results
