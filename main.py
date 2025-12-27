@@ -21,7 +21,6 @@ def search_jobs(query):
     r = requests.get(SERPAPI_URL, params=params)
     data = r.json()
 
-    # No results
     if "jobs_results" not in data:
         return []
 
@@ -32,15 +31,39 @@ def search_jobs(query):
         company = job.get("company_name", "Unknown company")
         location = job.get("location", "Unknown location")
 
-        # Try every possible link field SerpApi uses
+        # -------------------------------
+        # 🔗 Bulletproof Link Extraction
+        # -------------------------------
+        link = None
+
+        # 1. Direct fields
         link = (
             job.get("apply_link")
             or job.get("job_link")
             or job.get("link")
-            or (job.get("related_links", [{}])[0].get("link") if job.get("related_links") else None)
-            or "No link available"
         )
 
+        # 2. Related links
+        if not link and job.get("related_links"):
+            for rl in job["related_links"]:
+                if rl.get("link"):
+                    link = rl["link"]
+                    break
+
+        # 3. Apply options (most reliable)
+        if not link and job.get("apply_options"):
+            for opt in job["apply_options"]:
+                if opt.get("link"):
+                    link = opt["link"]
+                    break
+
+        # 4. Final fallback
+        if not link:
+            link = "No link available"
+
+        # -------------------------------
+        # Format for WhatsApp
+        # -------------------------------
         formatted = (
             f"🔹 *{title}*\n"
             f"🏢 {company}\n"
