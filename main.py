@@ -21,20 +21,34 @@ def search_jobs(query):
     r = requests.get(SERPAPI_URL, params=params)
     data = r.json()
 
-    # If no jobs found
+    # No results
     if "jobs_results" not in data:
         return []
 
     results = []
+
     for job in data["jobs_results"]:
         title = job.get("title", "No title")
         company = job.get("company_name", "Unknown company")
         location = job.get("location", "Unknown location")
-        link = job.get("link") or job.get("job_link") or job.get("apply_link") or "No link available"
 
+        # Try every possible link field SerpApi uses
+        link = (
+            job.get("apply_link")
+            or job.get("job_link")
+            or job.get("link")
+            or (job.get("related_links", [{}])[0].get("link") if job.get("related_links") else None)
+            or "No link available"
+        )
 
+        formatted = (
+            f"🔹 *{title}*\n"
+            f"🏢 {company}\n"
+            f"📍 {location}\n"
+            f"🔗 {link}\n"
+            f"──────────────"
+        )
 
-        formatted = f"{title}\n{company} — {location}\nApply: {link}"
         results.append(formatted)
 
     return results
